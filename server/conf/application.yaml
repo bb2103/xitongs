@@ -1,0 +1,56 @@
+# This is the parameter configuration file for PaddleSpeech Serving.
+# https://blog.csdn.net/qq_21288703/article/details/108010701?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-0-108010701-blog-128630911.235^v38^pc_relevant_anti_t3_base&spm=1001.2101.3001.4242.1&utm_relevant_index=3
+
+#################################################################################
+#                             SERVER SETTING                                    #
+#################################################################################
+host: 0.0.0.0
+port: 8091
+
+# The task format in the engin_list is: <speech task>_<engine type>
+# task choices = ['asr_online', 'tts_online']
+# protocol = ['websocket', 'http'] (only one can be selected).
+# websocket only support online engine type.
+protocol: 'websocket'
+engine_list: ['asr_online']
+
+
+#################################################################################
+#                                ENGINE CONFIG                                  #
+#################################################################################
+
+################################### ASR #########################################
+################### speech task: asr; engine_type: online #######################
+asr_online:
+    model_type: conformer_online_multicn # deepspeech2online_wenetspeech
+    am_model: # the pdmodel file of am static model [optional]
+    am_params:  # the pdiparams file of am static model [optional]
+    lang: 'zh'
+    sample_rate: 16000
+    cfg_path: 
+    decode_method: 
+    num_decoding_left_chunks:
+    force_yes: True
+    device: cpu # cpu or gpu:id
+    continuous_decoding: True # enable continue decoding when endpoint detected
+
+    am_predictor_conf:
+        device: 'cpu' # set 'gpu:id' or 'cpu'
+        switch_ir_optim: True
+        glog_info: False  # True -> print glog
+        summary: True  # False -> do not show predictor config
+        graph_optimization_level: 0 
+        intra_op_num_threads: 0 # Sets the number of threads used to parallelize the execution within nodes.
+        inter_op_num_threads: 0 # Sets the number of threads used to parallelize the execution of the graph (across nodes).
+        log_severity_level: 2   # Log severity level. Applies to session load, initialization, etc. 0:Verbose, 1:Info, 2:Warning. 3:Error, 4:Fatal. Default is 2.
+        log_verbosity_level: 0  # VLOG level if DEBUG build and session_log_severity_level is 0. Applies to session load, initialization, etc. Default is 0.
+
+    chunk_buffer_conf:
+        frame_duration_ms: 85
+        shift_ms: 40
+        sample_rate: 16000
+        sample_width: 2
+        window_n: 7     # frame
+        shift_n: 4      # frame
+        window_ms: 25   # ms
+        shift_ms: 10    # ms
