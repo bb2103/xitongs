@@ -2,6 +2,7 @@ import asyncio
 import json
 import threading
 import pyaudio
+import paddlehub
 import websockets
 from loguru import logger
 
@@ -9,12 +10,13 @@ class ASRWsAudioHandler(threading.Thread):
     def __init__(self, server="ws://127.0.0.1:8091/paddlespeech/asr/streaming"):
         threading.Thread.__init__(self)
         self.server = server
-        self.chunk_size = 8192
+        self.chunk_size = 2048
         self.format = pyaudio.paInt16
-        self.channels = 2
+        self.channels = 1
         self.rate = 16000
         self.record_running = True
         self.record_chunks = []
+        self.punc_model = paddlehub.Module(name='auto_punc')
 
     def start_record(self):
         logger.info("开始录音")
@@ -57,9 +59,11 @@ class ASRWsAudioHandler(threading.Thread):
                         logger.debug(msg)
                         if msg.get('result', '') != '':
                             text = msg['result']
-                        elif text != '':
-                            logger.info(f'Recognition Result: {text}')
-                            text = ''
+                        else:
+                            if text != '':
+                                text = self.punc_model.add_puncs(text)
+                                logger.info(f'Recognition Result: {text}')
+                                text = ''
             except asyncio.CancelledError:
                 await ws.send(json.dumps(
                     {"name": name, "signal": "end", "nbest": 5},
